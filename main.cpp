@@ -11,8 +11,11 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "./packages/stb/stb_image.h"
 
 #include"Shader.h"
+#include "Texture.h"
 #include"VAO.h"
 #include"VBO.h"
 #include"EBO.h"
@@ -23,38 +26,58 @@
 
 //GLOBAL VARIABLES
 
-GLuint buffer;
-GLuint IndexBuffer;
-GLint TransformationMatrixLocation;
-
-int SCREEN_WIDTH = 1280;
-int SCREEN_HEIGHT = 720;
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
 
 const char* VertexShaderFileName = "./shaders/vertex.glsl";
 const char* FragmentShaderFileName = "./shaders/fragment.glsl";
+const char* TextureFileName = "./pop_cat.png";
 
-GLfloat vertices[] =
-{ //               COORDINATES                  /     COLORS           //
-	-0.5f, -0.5f * float(sqrt(3)) * 1 / 3, 0.0f,     0.8f, 0.3f,  0.02f, // Lower left corner
-	 0.5f, -0.5f * float(sqrt(3)) * 1 / 3, 0.0f,     0.8f, 0.3f,  0.02f, // Lower right corner
-	 0.0f,  0.5f * float(sqrt(3)) * 2 / 3, 0.0f,     1.0f, 0.6f,  0.32f, // Upper corner
-	-0.25f, 0.5f * float(sqrt(3)) * 1 / 6, 0.0f,     0.9f, 0.45f, 0.17f, // Inner left
-	 0.25f, 0.5f * float(sqrt(3)) * 1 / 6, 0.0f,     0.9f, 0.45f, 0.17f, // Inner right
-	 0.0f, -0.5f * float(sqrt(3)) * 1 / 3, 0.0f,     0.8f, 0.3f,  0.02f  // Inner down
+GLfloat SquareVertices[] =
+{ //     COORDINATES     /        COLORS      /   TexCoord  //
+	-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
+	-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
+	 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
+	 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
 };
 
 // Indices for vertices order
-GLuint indices[] =
+GLuint SquareIndices[] =
 {
-	0, 3, 5, // Lower left triangle
-	3, 2, 4, // Lower right triangle
-	5, 4, 1 // Upper triangle
+	0, 2, 1, // Upper triangle
+	0, 3, 2 // Lower triangle
 };
 
 
+// Vertices coordinates
+GLfloat PyramidVertices[] =
+{ //     COORDINATES     /        COLORS      /   TexCoord  //
+	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
+	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	5.0f, 0.0f,
+	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
+	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	5.0f, 0.0f,
+	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	2.5f, 5.0f
+};
+
+// Indices for vertices order
+GLuint PyramidIndices[] =
+{
+	0, 1, 2,
+	0, 2, 3,
+	0, 1, 4,
+	1, 2, 4,
+	2, 3, 4,
+	3, 0, 4
+};
 
 
-void CombineTransformations() {
+glm::mat4 model = glm::mat4(1.0f);
+glm::mat4 view = glm::mat4(1.0f);
+glm::mat4 projection = glm::mat4(1.0f);
+
+int modelLocation, viewLocation, projectionLocation;
+
+void CombineTransformations(GLuint shaderID) {
 	static float Scale = 0.4f;
 	static float Angle = 0.0f;
 	static float Shift = 0.0f;
@@ -63,21 +86,23 @@ void CombineTransformations() {
 	static float Shift_Delta = 0.01f;
 	static float Angle_Delta = 0.03f;
 
-
 	Scale += Scale_Delta;
 	Shift += Shift_Delta;
 	Angle += Angle_Delta;
-
+	
 	if (Scale >= 1.0f || Scale <= 0.1) Scale_Delta *= -1.0f;
 	if (Shift >= 1.5f || Shift <= -1.5) Shift_Delta *= -1.0f;
+	
+	view = glm::translate(view, glm::vec3(0.0, -0.5f, -2.0f));
+	projection = glm::perspective(glm::radians(45.0f), (float)(SCREEN_WIDTH / SCREEN_HEIGHT), 0.1f, 100.0f);
 
-	glm::mat4 TranslationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, Shift));
-	glm::mat4 RotationMatrixZ = glm::rotate(glm::mat4(1.0f), Angle, glm::vec3(0.0f, 0.0f, 0.0f));
-	glm::mat4 ScalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	modelLocation = glGetUniformLocation(shaderID, "model");
+	viewLocation = glGetUniformLocation(shaderID, "view");
+	projectionLocation = glGetUniformLocation(shaderID, "projection");
 
-	glm::mat4 TransformMatrix = ScalingMatrix;
-
-	glUniformMatrix4fv(TransformationMatrixLocation, 1, GL_TRUE, &TransformMatrix[0][0]);
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
 }
 
@@ -86,7 +111,7 @@ int main() {
     if (!glfwInit()) {
         return -1;
     }
-	GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH,SCREEN_HEIGHT, "YoutubeOpenGL", NULL, NULL);
 
     if (!window) {
         glfwTerminate();
@@ -101,6 +126,9 @@ int main() {
     }
 
 
+	glEnable(GL_DEPTH_TEST);
+
+
 	Shader shaderProgram(VertexShaderFileName, FragmentShaderFileName);
 
 
@@ -108,25 +136,42 @@ int main() {
 	VAO VAO1;
 	VAO1.Bind();
 
-	VBO VBO1(vertices, sizeof(vertices));
-	EBO EBO1(indices, sizeof(indices));
+	VBO VBO1(PyramidVertices, sizeof(PyramidVertices));
+	EBO EBO1(PyramidIndices, sizeof(PyramidIndices));
 
-	VAO1.LinkAttributes(VBO1, 0,3,GL_FLOAT,6*sizeof(float),0);
-	VAO1.LinkAttributes(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	VAO1.LinkAttributes(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), 0);
+	VAO1.LinkAttributes(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttributes(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
-	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+	
+	Texture popCat(TextureFileName, GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
+	popCat.texUnit(shaderProgram, "tex0", 0);
+
+	GLuint uniID_tex0 = glGetUniformLocation(shaderProgram.ID, "tex0");
+	shaderProgram.Activate();
+	glUniform1i(uniID_tex0, 0);
+	CombineTransformations(shaderProgram.ID);
+
+
+	float Angle = 0.0f;
 
     while (!glfwWindowShouldClose(window)) {
 
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shaderProgram.Activate();
-		glUniform1f(uniID,1.5f);
+		
+		model = glm::rotate(model, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLocation = glGetUniformLocation(shaderProgram.ID, "model");
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+		
+		popCat.Bind();
 		VAO1.Bind();
-		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, sizeof(PyramidIndices)/sizeof(int), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
