@@ -15,10 +15,11 @@
 #include "./packages/stb/stb_image.h"
 
 #include"Shader.h"
-#include "Texture.h"
+#include"Texture.h"
 #include"VAO.h"
 #include"VBO.h"
 #include"EBO.h"
+#include"Camera.h"
 
 
 
@@ -78,21 +79,6 @@ glm::mat4 projection = glm::mat4(1.0f);
 int modelLocation, viewLocation, projectionLocation;
 
 void CombineTransformations(GLuint shaderID) {
-	static float Scale = 0.4f;
-	static float Angle = 0.0f;
-	static float Shift = 0.0f;
-
-	static float Scale_Delta = 0.01f;
-	static float Shift_Delta = 0.01f;
-	static float Angle_Delta = 0.03f;
-
-	Scale += Scale_Delta;
-	Shift += Shift_Delta;
-	Angle += Angle_Delta;
-	
-	if (Scale >= 1.0f || Scale <= 0.1) Scale_Delta *= -1.0f;
-	if (Shift >= 1.5f || Shift <= -1.5) Shift_Delta *= -1.0f;
-	
 	view = glm::translate(view, glm::vec3(0.0, -0.5f, -2.0f));
 	projection = glm::perspective(glm::radians(45.0f), (float)(SCREEN_WIDTH / SCREEN_HEIGHT), 0.1f, 100.0f);
 
@@ -103,7 +89,6 @@ void CombineTransformations(GLuint shaderID) {
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-
 }
 
 int main() {
@@ -146,7 +131,6 @@ int main() {
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
-
 	
 	Texture popCat(TextureFileName, GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
 	popCat.texUnit(shaderProgram, "tex0", 0);
@@ -154,20 +138,26 @@ int main() {
 	GLuint uniID_tex0 = glGetUniformLocation(shaderProgram.ID, "tex0");
 	shaderProgram.Activate();
 	glUniform1i(uniID_tex0, 0);
-	CombineTransformations(shaderProgram.ID);
 
-
+	/*
 	float Angle = 0.0f;
+	CombineTransformations(shaderProgram.ID);
+	model = glm::rotate(model, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	modelLocation = glGetUniformLocation(shaderProgram.ID, "model");
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+	*/
+
+	Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
     while (!glfwWindowShouldClose(window)) {
 
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shaderProgram.Activate();
-		
-		model = glm::rotate(model, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLocation = glGetUniformLocation(shaderProgram.ID, "model");
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+		camera.Inputs(window);
+		camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "CameraMatrix");
+
 		
 		popCat.Bind();
 		VAO1.Bind();
