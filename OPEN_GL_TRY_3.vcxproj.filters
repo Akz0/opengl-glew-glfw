@@ -22,6 +22,8 @@
     <None Include="shaders\vertex.glsl" />
     <None Include="shaders\fragment.glsl" />
     <None Include=".gitignore" />
+    <None Include="shaders\light-vertex.glsl" />
+    <None Include="shaders\light-fragment.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

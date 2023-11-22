@@ -1,13 +1,30 @@
 #version 330 core
 
-in vec3 Color;
-in vec2 TexCord;
 out vec4 FragColor;
 
+in vec3 Color;
+in vec2 TexCord;
+in vec3 Normal;
+in vec3 CurrentPosition;
+
 uniform sampler2D tex0;
+uniform vec4 lightColor;
+uniform vec3 lightPosition;
+uniform vec3 CameraPosition;
 
 void main()
 {
-	//FragColor = vec4(Color, 1.0f);
-   FragColor = texture(tex0,TexCord);
+	vec3 normal = normalize(Normal);
+	vec3 lightDirection = normalize(lightPosition - CurrentPosition);
+	float diffuse = max(dot(normal, lightDirection), 0.0f);
+
+	float SpecularLight = 0.5f;
+	vec3 ViewDirection = normalize(CameraPosition - CurrentPosition);
+	vec3 ReflectionDirection = reflect(-lightDirection, normal);
+	float SpecularAmount = pow(max(dot(ViewDirection,ReflectionDirection),0.0f),8);
+	float specular = SpecularAmount * SpecularLight;
+
+	float ambient = 0.20f;
+
+	FragColor = texture(tex0, TexCord) * lightColor * (diffuse + specular + ambient);
 }

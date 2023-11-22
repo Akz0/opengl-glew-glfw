@@ -134,6 +134,8 @@
     <None Include=".gitignore" />
     <None Include="packages.config" />
     <None Include="shaders\fragment.glsl" />
+    <None Include="shaders\light-fragment.glsl" />
+    <None Include="shaders\light-vertex.glsl" />
     <None Include="shaders\vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
