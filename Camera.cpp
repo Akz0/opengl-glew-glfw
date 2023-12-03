@@ -19,7 +19,6 @@ void Camera::UpdateMatrix(float FieldOfView, float NearPlane, float FarPlane) {
 
 void Camera::Matrix(Shader& shader, const char* uniform) {
 	glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
-
 }
 
 void Camera::Inputs(GLFWwindow* window) {

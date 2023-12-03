@@ -30,19 +30,24 @@
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
+// File Locations
+const char * TextureFile = "./textures/planks.png";
+const char* TextureFileSpecularMap = "./textures/planksSpec.png";
+
+
 GLfloat SquareVertices[] =
-{ //     COORDINATES     /        COLORS      /   TexCoord  //
-	-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
-	-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
-	 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
-	 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
+{ //     COORDINATES     /        COLORS        /    TexCoord    /       NORMALS     //
+	-1.0f, 0.0f,  1.0f,		0.0f, 0.0f, 0.0f,		0.0f, 0.0f,		0.0f, 1.0f, 0.0f,
+	-1.0f, 0.0f, -1.0f,		0.0f, 0.0f, 0.0f,		0.0f, 1.0f,		0.0f, 1.0f, 0.0f,
+	 1.0f, 0.0f, -1.0f,		0.0f, 0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f, 0.0f,
+	 1.0f, 0.0f,  1.0f,		0.0f, 0.0f, 0.0f,		1.0f, 0.0f,		0.0f, 1.0f, 0.0f
 };
 
 // Indices for vertices order
 GLuint SquareIndices[] =
 {
-	0, 2, 1, // Upper triangle
-	0, 3, 2 // Lower triangle
+	0, 1, 2,
+	0, 2, 3
 };
 
 
@@ -155,12 +160,12 @@ int main() {
 	Shader lightShader("./shaders/light-vertex.glsl", "./shaders/light-fragment.glsl");
 
 
-	// Pyramid Model
+	
 	VAO VAO1;
 	VAO1.Bind();
 
-	VBO VBO1(PyramidVertices, sizeof(PyramidVertices));
-	EBO EBO1(PyramidIndices, sizeof(PyramidIndices));
+	VBO VBO1(SquareVertices, sizeof(PyramidVertices));
+	EBO EBO1(SquareIndices, sizeof(PyramidIndices));
 
 	VAO1.LinkAttributes(VBO1, 0, 3, GL_FLOAT, 11 * sizeof(float), 0);
 	VAO1.LinkAttributes(VBO1, 1, 3, GL_FLOAT, 11 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -203,9 +208,14 @@ int main() {
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID,"model"), 1, GL_FALSE, glm::value_ptr(pyramidModel));
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPosition"), lightPosition.x, lightPosition.y, lightPosition.z);
+
+
 	//Texture
-	Texture popCat("./pop_cat.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
-	popCat.texUnit(shaderProgram, "tex0", 0);
+	Texture tex(TextureFile, GL_TEXTURE_2D,0,GL_RGBA, GL_UNSIGNED_BYTE);
+	tex.texUnit(shaderProgram, "tex0", 0);
+
+	Texture specular(TextureFileSpecularMap, GL_TEXTURE_2D,1,GL_RED,GL_UNSIGNED_BYTE);
+	specular.texUnit(shaderProgram, "tex1", 1);
 
 	GLuint uniID_tex0 = glGetUniformLocation(shaderProgram.ID, "tex0");
 	shaderProgram.Activate();
@@ -213,6 +223,7 @@ int main() {
 
 	//
 	Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
+	static float angle = 0;
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -221,11 +232,15 @@ int main() {
 
 		camera.Inputs(window);
 		camera.UpdateMatrix(45.0f, 0.1f, 100.0f);
-		
+		angle =0.01;
+
+		pyramidModel = glm::rotate(pyramidModel, angle, glm::vec3(0.0f, 1.0f, 0.0f));
 		shaderProgram.Activate();
 		glUniform3f(glGetUniformLocation(shaderProgram.ID, "CameraPosition"), camera.Position.x, camera.Position.y, camera.Position.z);
+
 		camera.Matrix(shaderProgram, "CameraMatrix");
-		popCat.Bind();
+		tex.Bind();
+		specular.Bind();
 		VAO1.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(PyramidIndices)/sizeof(int), GL_UNSIGNED_INT, 0);
 
