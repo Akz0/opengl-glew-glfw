@@ -1,101 +1,32 @@
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include <climits>
-#include <process.h>
-#include <fstream>
-#include <string>
-#include <math.h>
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "./packages/stb/stb_image.h"
-
-#include"Shader.h"
-#include"Texture.h"
-#include"VAO.h"
-#include"VBO.h"
-#include"EBO.h"
-#include"Camera.h"
-
-
-
-
-
-//GLOBAL VARIABLES
-
+#include "Mesh.h"
+	
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
-// File Locations
-const char * TextureFile = "./textures/planks.png";
-const char* TextureFileSpecularMap = "./textures/planksSpec.png";
-
-
-GLfloat SquareVertices[] =
-{ //     COORDINATES     /        COLORS        /    TexCoord    /       NORMALS     //
-	-1.0f, 0.0f,  1.0f,		0.0f, 0.0f, 0.0f,		0.0f, 0.0f,		0.0f, 1.0f, 0.0f,
-	-1.0f, 0.0f, -1.0f,		0.0f, 0.0f, 0.0f,		0.0f, 1.0f,		0.0f, 1.0f, 0.0f,
-	 1.0f, 0.0f, -1.0f,		0.0f, 0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f, 0.0f,
-	 1.0f, 0.0f,  1.0f,		0.0f, 0.0f, 0.0f,		1.0f, 0.0f,		0.0f, 1.0f, 0.0f
+Vertex vertices[] = 
+{ //               COORDINATES           /            COLORS          /           NORMALS         /       TEXTURE COORDINATES    //
+	Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+	Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+	Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+	Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)}
 };
 
-// Indices for vertices order
-GLuint SquareIndices[] =
+GLuint indices[] =
 {
 	0, 1, 2,
 	0, 2, 3
 };
 
-
-
-GLfloat PyramidVertices[] =
-{ //     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
-	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f, 	 0.0f, 0.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 0.0f, 5.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 5.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-
-	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f, 	 0.0f, 0.0f,     -0.8f, 0.5f,  0.0f, // Left Side
-	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,     -0.8f, 0.5f,  0.0f, // Left Side
-	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,     -0.8f, 0.5f,  0.0f, // Left Side
-
-	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.0f, 0.5f, -0.8f, // Non-facing side
-	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 0.0f, 0.0f,      0.0f, 0.5f, -0.8f, // Non-facing side
-	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,      0.0f, 0.5f, -0.8f, // Non-facing side
-
-	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 0.0f, 0.0f,      0.8f, 0.5f,  0.0f, // Right side
-	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.8f, 0.5f,  0.0f, // Right side
-	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,      0.8f, 0.5f,  0.0f, // Right side
-
-	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.0f, 0.5f,  0.8f, // Facing side
-	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f, 	 0.0f, 0.0f,      0.0f, 0.5f,  0.8f, // Facing side
-	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,      0.0f, 0.5f,  0.8f  // Facing side
-};
-
-GLuint PyramidIndices[] =
-{
-	0, 1, 2, // Bottom side
-	0, 2, 3, // Bottom side
-	4, 6, 5, // Left side
-	7, 9, 8, // Non-facing side
-	10, 12, 11, // Right side
-	13, 15, 14 // Facing side
-};
-
-GLfloat lightVertices[] =
+Vertex lightVertices[] =
 { //     COORDINATES     //
-	-0.1f, -0.1f,  0.1f,
-	-0.1f, -0.1f, -0.1f,
-	 0.1f, -0.1f, -0.1f,
-	 0.1f, -0.1f,  0.1f,
-	-0.1f,  0.1f,  0.1f,
-	-0.1f,  0.1f, -0.1f,
-	 0.1f,  0.1f, -0.1f,
-	 0.1f,  0.1f,  0.1f
+	Vertex{glm::vec3(-0.1f, -0.1f,  0.1f)},
+	Vertex{glm::vec3(-0.1f, -0.1f, -0.1f)},
+	Vertex{glm::vec3(0.1f, -0.1f, -0.1f)},
+	Vertex{glm::vec3(0.1f, -0.1f,  0.1f)},
+	Vertex{glm::vec3(-0.1f,  0.1f,  0.1f)},
+	Vertex{glm::vec3(-0.1f,  0.1f, -0.1f)},
+	Vertex{glm::vec3(0.1f,  0.1f, -0.1f)},
+	Vertex{glm::vec3(0.1f,  0.1f,  0.1f)}
 };
 
 GLuint lightIndices[] =
@@ -119,19 +50,6 @@ glm::mat4 view = glm::mat4(1.0f);
 glm::mat4 projection = glm::mat4(1.0f);
 
 int modelLocation, viewLocation, projectionLocation;
-
-void CombineTransformations(GLuint shaderID) {
-	view = glm::translate(view, glm::vec3(0.0, -0.5f, -2.0f));
-	projection = glm::perspective(glm::radians(45.0f), (float)(SCREEN_WIDTH / SCREEN_HEIGHT), 0.1f, 100.0f);
-
-	modelLocation = glGetUniformLocation(shaderID, "model");
-	viewLocation = glGetUniformLocation(shaderID, "view");
-	projectionLocation = glGetUniformLocation(shaderID, "projection");
-
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-}
 
 int main() {
 
@@ -157,39 +75,23 @@ int main() {
 
 
 	Shader shaderProgram("./shaders/vertex.glsl", "./shaders/fragment.glsl");
+
+	Texture textures[]
+	{
+		Texture("./textures/planks.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE),
+		Texture("./textures/planksSpec.png", "specular", 1, GL_RED, GL_UNSIGNED_BYTE)
+	};
+
+	std::vector <Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
+	std::vector <GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
+	std::vector <Texture> tex(textures, textures + sizeof(textures) / sizeof(Texture));
+	Mesh floor(verts, ind, tex);
+
 	Shader lightShader("./shaders/light-vertex.glsl", "./shaders/light-fragment.glsl");
+	std::vector <Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
+	std::vector <GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
+	Mesh light(lightVerts, lightInd, tex);
 
-
-	
-	VAO VAO1;
-	VAO1.Bind();
-
-	VBO VBO1(SquareVertices, sizeof(PyramidVertices));
-	EBO EBO1(SquareIndices, sizeof(PyramidIndices));
-
-	VAO1.LinkAttributes(VBO1, 0, 3, GL_FLOAT, 11 * sizeof(float), 0);
-	VAO1.LinkAttributes(VBO1, 1, 3, GL_FLOAT, 11 * sizeof(float), (void*)(3 * sizeof(float)));
-	VAO1.LinkAttributes(VBO1, 2, 2, GL_FLOAT, 11 * sizeof(float), (void*)(6 * sizeof(float)));
-	VAO1.LinkAttributes(VBO1, 3, 3, GL_FLOAT, 11 * sizeof(float), (void*)(8 * sizeof(float)));
-
-	VAO1.Unbind();
-	VBO1.Unbind();
-	EBO1.Unbind();
-
-	//Light Cube
-	VAO lightVAO;
-	lightVAO.Bind();
-	
-	VBO lightVBO(lightVertices, sizeof(lightVertices));
-	EBO lightEBO(lightIndices, sizeof(lightIndices));
-
-	lightVAO.LinkAttributes(lightVBO, 0, 3, GL_FLOAT, 3 * sizeof(float), (void*)0);
-	
-	lightVAO.Unbind();
-	lightVBO.Unbind();
-	lightEBO.Unbind();
-
-	//------------------
 
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPosition = glm::vec3(0.0f,1.5f,0.5f);
@@ -209,19 +111,10 @@ int main() {
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPosition"), lightPosition.x, lightPosition.y, lightPosition.z);
 
-
-	//Texture
-	Texture tex(TextureFile, GL_TEXTURE_2D,0,GL_RGBA, GL_UNSIGNED_BYTE);
-	tex.texUnit(shaderProgram, "tex0", 0);
-
-	Texture specular(TextureFileSpecularMap, GL_TEXTURE_2D,1,GL_RED,GL_UNSIGNED_BYTE);
-	specular.texUnit(shaderProgram, "tex1", 1);
-
 	GLuint uniID_tex0 = glGetUniformLocation(shaderProgram.ID, "tex0");
 	shaderProgram.Activate();
 	glUniform1i(uniID_tex0, 0);
 
-	//
 	Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 	static float angle = 0;
 
@@ -239,25 +132,20 @@ int main() {
 		glUniform3f(glGetUniformLocation(shaderProgram.ID, "CameraPosition"), camera.Position.x, camera.Position.y, camera.Position.z);
 
 		camera.Matrix(shaderProgram, "CameraMatrix");
-		tex.Bind();
-		specular.Bind();
-		VAO1.Bind();
-		glDrawElements(GL_TRIANGLES, sizeof(PyramidIndices)/sizeof(int), GL_UNSIGNED_INT, 0);
 
 		lightShader.Activate();
 		camera.Matrix(lightShader, "CameraMatrix");
-		lightVAO.Bind();
-		glDrawElements(GL_TRIANGLES, sizeof(lightIndices) / sizeof(int), GL_UNSIGNED_INT, 0);
+
+		// Draws different meshes
+		floor.Draw(shaderProgram, camera);
+		light.Draw(lightShader, camera);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
     }
 
-
-	VAO1.Delete();
-	VBO1.Delete();
-	EBO1.Delete();
 	shaderProgram.Delete();
+	lightShader.Delete();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 

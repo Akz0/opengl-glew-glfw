@@ -7,8 +7,8 @@ in vec2 TexCord;
 in vec3 Normal;
 in vec3 CurrentPosition;
 
-uniform sampler2D tex0;
-uniform sampler2D tex1;
+uniform sampler2D diffuse0;
+uniform sampler2D specular0;
 
 uniform vec4 lightColor;
 uniform vec3 lightPosition;
@@ -37,7 +37,7 @@ vec4 PointLight(){
 
 	float ambient = 0.20f;
 
-	return (texture(tex0, TexCord) * (diffuse + ambient + intensity) + texture(tex1, TexCord).r * specular) * lightColor;
+	return (texture(diffuse0, TexCord) * (diffuse + ambient + intensity) + texture(specular0, TexCord).r * specular) * lightColor;
 }
 
 vec4 SpotLight(){
@@ -58,7 +58,7 @@ vec4 SpotLight(){
 
 	float angle = dot(vec3(0.0f,-1.0f,0.0f),-lightDirection);
 	float intensity = clamp((angle - outerCone) / (innerCone - outerCone),0.0f,1.0f);
-	return (texture(tex0, TexCord) * (diffuse + ambient + intensity) + texture(tex1, TexCord).r * specular *intensity) * lightColor;
+	return (texture(diffuse0, TexCord) * (diffuse + ambient + intensity) + texture(specular0, TexCord).r * specular *intensity) * lightColor;
 }
 
 vec4 DirectionLight(){
@@ -75,10 +75,10 @@ vec4 DirectionLight(){
 
 	float ambient = 0.20f;
 
-	return (texture(tex0, TexCord) * (diffuse + ambient ) + texture(tex1, TexCord).r * specular) * lightColor;
+	return (texture(diffuse0, TexCord) * (diffuse + ambient ) + texture(specular0, TexCord).r * specular) * lightColor;
 }
 
 void main()
 {
-	FragColor = DirectionLight();
+	FragColor = PointLight();
 }

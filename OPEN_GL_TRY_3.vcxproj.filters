@@ -50,6 +50,9 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VAO.h">
@@ -73,12 +76,21 @@
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\pop_cat.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="textures\brick.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\planks.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\planksSpec.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
