@@ -93,8 +93,8 @@ int main() {
 	Mesh light(lightVerts, lightInd, tex);
 
 
-	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPosition = glm::vec3(0.0f,1.5f,0.5f);
+	glm::vec4 lightColor = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
+	glm::vec3 lightPosition = glm::vec3(0.0f,0.5f,0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPosition);
 
@@ -136,9 +136,8 @@ int main() {
 		lightShader.Activate();
 		camera.Matrix(lightShader, "CameraMatrix");
 
-		// Draws different meshes
-		floor.Draw(shaderProgram, camera);
-		light.Draw(lightShader, camera);
+		floor.Draw(shaderProgram, camera,false);
+		light.Draw(lightShader, camera,false);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

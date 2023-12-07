@@ -21,7 +21,7 @@ Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::v
 }
 
 
-void Mesh::Draw(Shader& shader, Camera& camera) {
+void Mesh::Draw(Shader& shader, Camera& camera,bool vert) {
 	shader.Activate();
 	VAO.Bind();
 
@@ -46,5 +46,10 @@ void Mesh::Draw(Shader& shader, Camera& camera) {
 	glUniform3f(glGetUniformLocation(shader.ID, "CameraPosition"), camera.Position.x, camera.Position.y, camera.Position.z);
 	camera.Matrix(shader, "CameraMatrix");
 	 
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	if (vert) {
+		glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+	}
+	else {
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	}
 }
