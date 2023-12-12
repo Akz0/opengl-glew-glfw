@@ -10,7 +10,7 @@ Texture::Texture(const char* image, const char * texType, GLuint slot, GLenum fo
 	if (!image_data) {
 		std::cerr << "CANNOT LOAD TEXTURE FROM :" << image<< std::endl;
 	}
-	std::cout << "Image Loaded : Width = " << imageWidth << " Height = " << imageHeight << " ColorChannels = " << ColorChannels << std::endl;
+	std::cout << "Image"<<image<<" , Loaded : Width = " << imageWidth << " Height = " << imageHeight << " ColorChannels = " << ColorChannels << std::endl;
 
 
 	glGenTextures(1, &ID);

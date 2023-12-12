@@ -72,9 +72,13 @@ int main() {
 
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_FRONT);
+	glEnable(GL_CW);
 
 
 	Shader shaderProgram("./shaders/vertex.glsl", "./shaders/fragment.glsl");
+	Shader floorShaderProgram("./shaders/vertex.glsl", "./shaders/fragment.glsl");
 
 	Texture textures[]
 	{
@@ -82,10 +86,19 @@ int main() {
 		Texture("./textures/planksSpec.png", "specular", 1, GL_RED, GL_UNSIGNED_BYTE)
 	};
 
+	Texture floorTextures[]
+	{
+		Texture("./textures/planks.png", "diffuse", 2, GL_RGBA, GL_UNSIGNED_BYTE),
+	};
+
 	std::vector <Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
 	std::vector <GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
 	std::vector <Texture> tex(textures, textures + sizeof(textures) / sizeof(Texture));
+	std::vector <Texture> floor_tex(floorTextures, floorTextures + sizeof(floorTextures) / sizeof(Texture));
+
 	Mesh floor(verts, ind, tex);
+	Mesh floor2(verts, ind, floor_tex);
+
 
 	Shader lightShader("./shaders/light-vertex.glsl", "./shaders/light-fragment.glsl");
 	std::vector <Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
@@ -93,14 +106,21 @@ int main() {
 	Mesh light(lightVerts, lightInd, tex);
 
 
-	glm::vec4 lightColor = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
+	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPosition = glm::vec3(0.0f,0.5f,0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPosition);
+	lightModel = glm::scale(lightModel, glm::vec3(0.5, 0.5, 0.5));
 
 	glm::vec3 pyramidPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::mat4 pyramidModel = glm::mat4(1.0f);
 	pyramidModel = glm::translate(pyramidModel, pyramidPosition);
+
+	glm::vec3 floorPosition = glm::vec3(0.0f, 0.2f, 0.0f);
+	glm::mat4 floorModel = glm::mat4(1.0f);
+	floorModel = glm::translate(floorModel, floorPosition);
+	floorModel = glm::scale(floorModel, glm::vec3(0.5, 0.5, 0.5));
+
 
 	lightShader.Activate();
 	glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(lightModel));
@@ -111,9 +131,11 @@ int main() {
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPosition"), lightPosition.x, lightPosition.y, lightPosition.z);
 
-	GLuint uniID_tex0 = glGetUniformLocation(shaderProgram.ID, "tex0");
-	shaderProgram.Activate();
-	glUniform1i(uniID_tex0, 0);
+	floorShaderProgram.Activate();
+	glUniformMatrix4fv(glGetUniformLocation(floorShaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(floorModel));
+	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPosition"), lightPosition.x, lightPosition.y, lightPosition.z);
+
 
 	Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 	static float angle = 0;
@@ -130,13 +152,18 @@ int main() {
 		pyramidModel = glm::rotate(pyramidModel, angle, glm::vec3(0.0f, 1.0f, 0.0f));
 		shaderProgram.Activate();
 		glUniform3f(glGetUniformLocation(shaderProgram.ID, "CameraPosition"), camera.Position.x, camera.Position.y, camera.Position.z);
-
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(pyramidModel));
 		camera.Matrix(shaderProgram, "CameraMatrix");
+
+		floorShaderProgram.Activate();
+		glUniform3f(glGetUniformLocation(floorShaderProgram.ID, "CameraPosition"), camera.Position.x, camera.Position.y, camera.Position.z);
+		camera.Matrix(floorShaderProgram, "CameraMatrix");
 
 		lightShader.Activate();
 		camera.Matrix(lightShader, "CameraMatrix");
 
-		floor.Draw(shaderProgram, camera,false);
+		floor.Draw(shaderProgram, camera, false);
+		floor2.Draw(floorShaderProgram, camera, false);
 		light.Draw(lightShader, camera,false);
 
 		glfwSwapBuffers(window);

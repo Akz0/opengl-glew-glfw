@@ -89,5 +89,5 @@ vec4 DirectionLight(float power){
 
 void main()
 {
-	FragColor = PointLight(1.0);
+	FragColor = texture(diffuse0, TexCord) + texture(specular0, TexCord);
 }
