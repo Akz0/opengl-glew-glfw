@@ -24,6 +24,8 @@
     <None Include=".gitignore" />
     <None Include="shaders\light-vertex.glsl" />
     <None Include="shaders\light-fragment.glsl" />
+    <None Include="shaders\flat-vertex.glsl" />
+    <None Include="shaders\flat-fragment.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -91,6 +93,16 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="textures\planksSpec.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\rubik.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\cat.tga" />
+    <Image Include="textures\cottage_diffuse.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\grey-concrete-texture.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

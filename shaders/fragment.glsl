@@ -89,5 +89,5 @@ vec4 DirectionLight(float power){
 
 void main()
 {
-	FragColor = PointLight(1.0);
+	FragColor = SpotLight(0.8);
 }

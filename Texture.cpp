@@ -5,7 +5,7 @@ Texture::Texture(const char* image, const char * texType, GLuint slot, GLenum fo
 	type = texType;
 	//Texture
 	int imageWidth, imageHeight, ColorChannels;
-	stbi_set_flip_vertically_on_load(1);
+	stbi_set_flip_vertically_on_load(false);
 	unsigned char* image_data = stbi_load(image, &imageWidth, &imageHeight, &ColorChannels, 0);
 	if (!image_data) {
 		std::cerr << "CANNOT LOAD TEXTURE FROM :" << image<< std::endl;

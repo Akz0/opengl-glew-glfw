@@ -1,0 +1,8 @@
+Model Information:
+* title:	Basic Donut done in Blender
+* source:	https://sketchfab.com/3d-models/basic-donut-done-in-blender-e1b163c601014f8483d58db6231f4fe2
+* author:	Creator20_Guest (https://sketchfab.com/Creator20_Guest)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works
